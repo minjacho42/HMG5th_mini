@@ -2,4 +2,5 @@
 **/*.html
 **/*.csv
 **/*.ttf
-webtoon_data/
+comments_data/
+name_id_mapper.ipynb
