@@ -5,8 +5,10 @@ import pandas as pd
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, TextClassificationPipeline
 import argparse
 from dotenv import load_dotenv
+from tqdm import tqdm
 
 load_dotenv()
+
 
 def get_sentiment_score(text: str, pipeline: TextClassificationPipeline):
     """
@@ -81,6 +83,7 @@ def set_sentiment_column(infile: str, outfile: str, model_path: str):
     return comment_df
 
 def main():
+    tqdm.pandas()
     parser = argparse.ArgumentParser()
     parser.add_argument('--infile', required=True, help='Input JSON file with comments')
     parser.add_argument('--outfile', required=True, help='Output CSV file path')
