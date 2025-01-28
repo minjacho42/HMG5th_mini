@@ -12,6 +12,25 @@ PROCESSED_DATA_DIR = os.getenv('PROCESSED_DATA_DIR')
 def log(message):
     print(f"[LOG] {message}")
 
+def load_comments_json(title, episode):
+    file_path = os.path.join(RAW_DATA_DIR, f"{title}_{episode}.json")
+    with open(file_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    return data
+
+def classify_reader(comment:dict, threshold_time:datetime):
+    comment_time = datetime.fromisoformat(comment["date"])
+    return "충성 독자" if comment_time <= threshold_time else "일반 독자"
+
+def get_threshold_time(comments:list):
+    return datetime.fromisoformat(comments[-1]["date"]) + timedelta(hours=12)
+
+def save_transformed_data(webtoon_name, episode, data:dict):
+    os.makedirs(PROCESSED_DATA_DIR, exist_ok=True)
+    output_filename = f"{PROCESSED_DATA_DIR}/{webtoon_name}_{episode}_processed.json"
+    with open(output_filename, 'w', encoding='utf-8') as outfile:
+        json.dump(data, outfile, ensure_ascii=False, indent=4)
+
 def classify_readers(webtoon_name, episode):
     log("웹툰 데이터 변환 시작")
     filename = f"{RAW_DATA_DIR}/{webtoon_name}_{episode}.json"
