@@ -1,10 +1,12 @@
 import json
 from datetime import datetime, timedelta
 import os
+from dotenv import load_dotenv
 
+load_dotenv()
 # 전역 변수 설정
-RAW_DATA_DIR = 'comments_raw_data'
-PROCESSED_DATA_DIR = 'comments_processed_data'
+RAW_DATA_DIR = os.getenv('RAW_DATA_DIR')
+PROCESSED_DATA_DIR = os.getenv('PROCESSED_DATA_DIR')
 
 
 def log(message):
