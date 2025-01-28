@@ -1,0 +1,6 @@
+**/*.png
+**/*.html
+**/*.csv
+**/*.ttf
+comments_data/
+name_id_mapper.ipynb
