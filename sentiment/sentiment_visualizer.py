@@ -1,5 +1,4 @@
 import argparse
-
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -34,8 +33,10 @@ def display_total_sentiment_pie_chart(data:pd.DataFrame, threshold:float=0.6):
     plt.title('Sentiment Distribution (with Neutral)', fontsize=16)
     plt.show()
 
-if "__main__" == __name__:
+if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--csvfile', required=True, help='Input CSV file path')
-    df = pd.read_csv(parser.parse_args().csvfile)
-    display_total_sentiment_pie_chart(df)
+    parser.add_argument('--threshold', type=float, default=0.6, help='Threshold for positive/negative classification')
+    args = parser.parse_args()
+    df = pd.read_csv(args.csvfile)
+    display_total_sentiment_pie_chart(df, args.threshold)
