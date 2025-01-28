@@ -5,7 +5,7 @@ import json
 # 환경 변수에서 API 키 가져오기
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# JSON 파일 로드
+# JSON 파일 로드 
 file_path = './crawler/comments_data/퀘스트지상주의_157_top100.json'
 with open(file_path, encoding='utf-8') as file:
     data = json.load(file)
