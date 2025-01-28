@@ -1,19 +1,32 @@
 import os
 import openai
 import json
+import sys
 
 # 환경 변수에서 API 키 가져오기
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# JSON 파일 로드 
-file_path = './crawler/comments_data/퀘스트지상주의_157_top100.json'
+# 명령줄 인자 처리
+if len(sys.argv) < 3:
+    print("사용법: python3 gpt_api.py <웹툰 이름> <회차>")
+    sys.exit(1)
+
+webtoon_name = sys.argv[1]  # 첫 번째 인자: 웹툰 이름
+episode_number = sys.argv[2]  # 두 번째 인자: 회차
+
+# JSON 파일 경로 생성
+file_path = f'../crawler/comments_data/{webtoon_name}_{episode_number}.json'
+
+# JSON 파일 로드
+if not os.path.exists(file_path):
+    print(f"파일을 찾을 수 없습니다: {file_path}")
+    sys.exit(1)
+
 with open(file_path, encoding='utf-8') as file:
     data = json.load(file)
 
 # 댓글 데이터 추출
 comments = data["top_comments"]
-webtoon_name = data["webtoon"]
-episode_number = data["episode"]
 
 # GPT API 요청 함수 정의
 def generate_report(comments, webtoon_name, episode_number):
@@ -45,8 +58,15 @@ report = generate_report(comments, webtoon_name, episode_number)
 print("=== 보고서 ===")
 print(report)
 
-# 파일 저장
-output_path = f"./feedback_data/{webtoon_name}_{episode_number}_feedback.txt"
+# 결과 저장 경로 생성
+output_dir = "./feedback_data"
+os.makedirs(output_dir, exist_ok=True)  # 출력 디렉토리 생성
+output_path = f"{output_dir}/{webtoon_name}_{episode_number}_feedback.txt"
+
+# 보고서 파일 저장
 with open(output_path, "w", encoding="utf-8") as f:
     f.write(report)
+
+print(f"보고서가 저장되었습니다: {output_path}")
+
 
