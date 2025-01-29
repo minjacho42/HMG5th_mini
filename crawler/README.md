@@ -14,16 +14,7 @@ crawler/
 │-- wordcloud_output/    # 생성된 워드 클라우드 이미지(PNG) 저장 디렉토리
 │-- extract_comments.py   # 웹툰 댓글을 크롤링하는 스크립트
 |-- transform_comments.py # 크롤링한 웹툰 댓글을 전처리하는 스크립트
-|-- main.py                # 통합 ETL 파이프라인 실행 스크립트
 │-- make_wordcloud.py    # 크롤링된 데이터를 기반으로 워드 클라우드를 생성하는 스크립트
-```
-
-## 통합 실행
-
-**`main.py`** 실행
-- `Extract` + `Transform` + `Wordcloud`
-```bash
-python main.py --title "퀘스트지상주의" --episode 154
 ```
 
 ## 개별 실행

@@ -1,9 +1,0 @@
-**/*.png
-**/*.html
-**/*.csv
-**/*.ttf
-comments_raw_data/
-comments_processed_data/
-__pycache__/
-episode_data/
-name_id_mapper.ipynb
