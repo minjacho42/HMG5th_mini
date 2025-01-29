@@ -7,11 +7,14 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # 전역 변수 설정
-WEBTOON_INFO_FILE = 'mapping_data/webtoon_info.json'
-EPISODE_DATA_DIR = 'episode_data'
-RAW_DATA_DIR = 'comments_raw_data'
+WEBTOON_INFO_FILE = os.getenv('WEBTOON_INFO_FILE')
+EPISODE_DATA_DIR = os.getenv('EPISODE_DATA_DIR')
+RAW_DATA_DIR = os.getenv('RAW_DATA_DIR')
 HEADERS = {'User-agent': 'Mozilla/5.0'}
 
 def log(message):
