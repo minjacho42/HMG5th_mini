@@ -1,5 +1,6 @@
 from crawler.extract_comments import scrape_recent_episodes, scrape_webtoon_comments
 from crawler.transform_comments import transform
+from crawler.update_trend import update_comments_with_trend
 import argparse
 
 def main(title, episode):
@@ -13,6 +14,7 @@ def main(title, episode):
     # 2. 댓글 전처리
     print("댓글 전처리 중...")
     transform(title, episode)
+    update_comments_with_trend(title, episode)
 
     print(f"웹툰 '{title}'의 에피소드 {episode} 처리 완료.")
 
