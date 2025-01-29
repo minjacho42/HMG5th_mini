@@ -1,0 +1,11 @@
+**/*.env
+**/*.png
+**/*.html
+**/*.csv
+**/*.ttf
+crawler/comments_raw_data/
+crawler/comments_processed_data/
+**/__pycache__/
+crawler/episode_data/
+crawler/name_id_mapper.ipynb
+sentiment/pretrained_model/
