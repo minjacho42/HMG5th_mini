@@ -2,7 +2,7 @@ import json
 import tiktoken
 
 # Load the JSON file
-file_path = '/Users/admin/Downloads/%ED%80%98%EC%8A%A4%ED%8A%B8%EC%A7%80%EC%83%81%EC%A3%BC%EC%9D%98_top_100.json'  # 파일 경로를 입력하세요
+file_path = 'crawler/comments_processed_data/배달왕_80_processed.json'  # 파일 경로를 입력하세요
 with open(file_path, 'r', encoding='utf-8') as file:
     data = json.load(file)
 
