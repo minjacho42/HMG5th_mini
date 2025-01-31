@@ -96,7 +96,9 @@ if __name__ == "__main__":
     trend_df['negative_comment_ratio'] = trend_df['negative_comment_ratio'].replace('N/A', 0)
     trend_df['negative_comment_ratio'] = trend_df['negative_comment_ratio'].astype(float, errors='ignore')
     fig = visualize_trend(trend_df)
-    fig.savefig(f"{args.title}_{args.episode_num}_trend.png")
+    if not os.path.isdir("./visualized_image"):
+        os.mkdir("./visualized_image")
+    fig.savefig(f"./visualized_image/{args.title}_{args.episode_num}_trend.png")
     comments_df = pd.DataFrame(comments)
     fig = visualize_sentiment_pie(comments_df, 0.6)
-    fig.savefig(f"{args.title}_{args.episode_num}_sentiment.png")
+    fig.savefig(f"./visualized_image/{args.title}_{args.episode_num}_sentiment.png")
