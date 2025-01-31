@@ -1,57 +1,46 @@
-# 감정 분석 파이 차트 시각화
+# 감정 분석 및 트렌드 시각화
 
 ## 개요
-이 스크립트는 감정 점수를 기반으로 댓글의 감정 분포를 파이 차트로 시각화합니다.<br>
+이 스크립트는 최근 5화의 별점 및 부정 댓글 비율을 분석하여 트렌드를 시각화합니다.<br>
+또한, PostgreSQL 데이터베이스에서 웹툰 에피소드의 댓글을 가져와 감정 점수를 기반으로 감정 분포를 파이 차트로 시각화합니다.<br>
 주어진 임계값을 기준으로 댓글을 `긍정`, `중립`, `부정`으로 분류하며, <br>
 `일반 독자`와 `충성 독자`를 구분하여 보여줍니다.
 
 ## 사용법
-JSON 파일과 감정 점수 임계값을 지정하여 스크립트를 실행합니다:
+스크립트를 실행하려면 데이터베이스 연결 정보를 `.env` 파일에 설정해야 합니다.
 
 ```sh
-python visualize_sentiment_pie.py --input comments.json --threshold 0.2 --output figure.png
+python visualize.py --title <웹툰 제목> --episode_num <회차>
 ```
 
-### 인자 설명
-- `--input` : 댓글 데이터를 포함한 JSON 파일 경로
-- `--threshold` : 감정을 분류하는 기준이 되는 감정 점수 임계값
-- `--output` : 다 그려진 플롯을 저장할 파일명.
+## 환경 변수 설정 (`.env` 파일)
+PostgreSQL 데이터베이스를 사용할 경우 `.env` 파일을 생성하여 다음 정보를 설정해야 합니다:
 
-## 입력 데이터 형식
-JSON 파일은 `sentiment_score`(감정 점수)와 `reader_loyalty`(독자 충성도) 속성을 포함한 배열이어야 합니다. 예제:
-
-```json
-[
-  {
-    "nickname": "<nickname>",
-    "text": "<comment>",
-    "recomm": "<count of recommended>",
-    "unrecomm": "<count of unrecommended>",
-    "date": "YYYY-MM-DDTHH:MM:SS+0900",
-    "sentiment_score": "<sentiment score value>",
-    "reader_loyalty": "<충성 독자 or 일반 독자>"
-  },
-  {
-    "nickname": "<nickname>",
-    "text": "<comment>",
-    "recomm": "<count of recommended>",
-    "unrecomm": "<count of unrecommended>",
-    "date": "YYYY-MM-DDTHH:MM:SS+0900",
-    "sentiment_score": "<sentiment score value>",
-    "reader_loyalty": "<충성 독자 or 일반 독자>"
-  }
-]
+```
+DB_NAME=<데이터베이스 이름>
+DB_USER=<사용자 이름>
+DB_PASSWORD=<비밀번호>
+DB_HOST=<호스트 주소>
+DB_PORT=<포트 번호>
 ```
 
 ## 출력
-스크립트는 다음과 같은 두 개의 파이 차트를 생성합니다:
-1. **일반 독자 감정 분포**
-2. **충성 독자 감정 분포**
+스크립트는 다음과 같은 시각화를 생성합니다:
+1. **일반 독자 감정 분포** (파이 차트)
+2. **충성 독자 감정 분포** (파이 차트)
+3. **최근 5화의 별점 및 부정 댓글 비율 트렌드** (라인 차트)
 
-각 차트는 `긍정`, `중립`, `부정` 댓글의 비율을 표시합니다.
+각 감정 분포 차트는 `긍정`, `중립`, `부정` 댓글의 비율을 표시하며,
+트렌드 그래프는 최근 5개의 에피소드에서 별점과 부정적인 댓글 비율 변화를 보여줍니다.
 
 ## 예제
 ```sh
-python visualize_sentiment_pie.py --input sample_comments.json --threshold 0.4 --output comment_fig.png
+python3 visualize.py --title "퀘스트지상주의" --episode_num 153
 ```
-이 명령어는 `sample_comments.json` 파일을 읽고 `0.2` 임계값을 기준으로 감정을 분류하여 감정 분포 파이 차트를 생성합니다.
+이 명령어는 별점, 부정댓글 비율 추이를 차트로 그려주고,<br>
+독자층에 따른 긍부정 댓글의 비율을 그려줍니다.
+ouput은 두개의 .png 파일이 다음과 같이 나오게 됩니다.
+```
+├── <title>_<episode_num>_sentiment.png
+├── <title>_<episode_num>_trend.png
+```
