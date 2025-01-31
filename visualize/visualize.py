@@ -9,7 +9,11 @@ load_dotenv()
 
 VISUALIZED_IMAGE_DIR = os.getenv("VISUALIZED_IMAGE_DIR")
 
-colors = ['#66b3ff', '#ff9999', '#99ff99']
+color_mapping = {
+    'Positive': '#66b3ff',
+    'Negative': '#ff9999',
+    'Neutral': '#99ff99'
+}
 # Blue, Red, Green
 
 def connect_db():
@@ -52,8 +56,12 @@ def visualize_sentiment_pie(comments_df, threshold):
     loyalty_reader = readers_comment_df['일반 독자']
     non_loyalty_reader = readers_comment_df['충성 독자']
     fig, ax = plt.subplots(1, 2, figsize=(12, 6))
-    ax[0].pie(loyalty_reader, autopct='%1.1f%%', startangle=140, textprops={'fontsize': 12}, labels=loyalty_reader.index, colors=colors)
-    ax[1].pie(non_loyalty_reader, autopct='%1.1f%%', startangle=140, textprops={'fontsize': 12}, labels=non_loyalty_reader.index, colors=colors)
+    ax[0].pie(loyalty_reader, autopct='%1.1f%%', startangle=140,
+              textprops={'fontsize': 12}, labels=loyalty_reader.index,
+              colors=[color_mapping[label] for label in loyalty_reader.index])
+    ax[1].pie(non_loyalty_reader, autopct='%1.1f%%', startangle=140,
+              textprops={'fontsize': 12}, labels=non_loyalty_reader.index,
+              colors=[color_mapping[label] for label in non_loyalty_reader.index])
     ax[0].set_title('Loyalty Reader')
     ax[1].set_title('Non-Loyalty Reader')
     return fig
