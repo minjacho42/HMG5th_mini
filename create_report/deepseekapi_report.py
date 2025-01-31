@@ -12,16 +12,16 @@ DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_HOST = os.getenv("DB_HOST")
 DB_PORT = os.getenv("DB_PORT")
 
-# OpenAI API 설정
-API_KEY = os.getenv("OPENAI_API_KEY")
-GPT_MODEL = "gpt-4o"  # 또는 "gpt-3.5-turbo"
+# DeepSeek API 설정
+DEEPSEEK_BASE_URL = "https://api.deepseek.com"
+API_KEY = os.getenv("DEEPSEEK_API_KEY")
 
-# OpenAI 클라이언트 초기화
-client = OpenAI(api_key=API_KEY)
+# OpenAI 클라이언트 초기화 (DeepSeek 사용)
+client = OpenAI(api_key=API_KEY, base_url=DEEPSEEK_BASE_URL)
 
-# 보고서 저장 경로
-PROMPT_FILE = os.getenv("PROMPT_FILE_PATH")
-REPORTS_DIR = os.getenv("REPORTS_DIR")
+# 경로 설정
+PROMPT_FILE = "prompt.txt"  # 사용할 프롬프트 파일
+REPORTS_DIR = "reports"  # 분석 결과 저장 디렉토리
 
 def log(message):
     """로그 출력 함수"""
@@ -36,6 +36,7 @@ def load_prompt():
     with open(PROMPT_FILE, "r", encoding="utf-8") as f:
         return f.read()
 
+
 def fetch_webtoon_row(title, episode):
     """PostgreSQL에서 특정 웹툰의 특정 회차 데이터 가져오기"""
     conn = psycopg2.connect(
@@ -44,8 +45,7 @@ def fetch_webtoon_row(title, episode):
     cursor = conn.cursor()
 
     query = """
-        SELECT webtoon, episode, interest_count, like_count, rating, trend, comments, created_at 
-        FROM webtoon_episodes 
+        SELECT webtoon, episode, interest_count, like_count, rating, trend, comments, created_at FROM webtoon_episodes 
         WHERE webtoon = %s AND episode = %s;
     """
 
@@ -53,7 +53,7 @@ def fetch_webtoon_row(title, episode):
     data = cursor.fetchone()
     
     conn.close()
-
+    
     if not data:
         log(f"❌ {title} {episode}화의 데이터를 찾을 수 없습니다.")
         return None
@@ -61,17 +61,18 @@ def fetch_webtoon_row(title, episode):
     return data
 
 def generate_prompt(title, episode):
-    """GPT API 요청을 위한 프롬프트 생성"""
+    """DeepSeek API 요청을 위한 프롬프트 생성"""
     prompt_text = load_prompt()
     if not prompt_text:
         return None
-    
+
     webtoon_data = fetch_webtoon_row(title, episode)
     if not webtoon_data:
         return None
 
     webtoon, episode, interest_count, like_count, rating, trend, comments, created_at = webtoon_data
 
+    # DeepSeek 프롬프트 구성
     prompt = f"{prompt_text}\n\n"
     prompt += f"### {webtoon} {episode}화 독자 반응 데이터\n"
     prompt += f"- 관심 수: {interest_count}\n"
@@ -80,22 +81,13 @@ def generate_prompt(title, episode):
     prompt += f"- 트렌드 분석 데이터: {trend}\n"
     prompt += f"- 데이터 기록 시간: {created_at}\n\n"
 
-    # JSON 파싱 예외 처리
-    try:
-        if isinstance(comments, str):
-            comment_list = json.loads(comments)  # 문자열이면 JSON 변환
-        elif isinstance(comments, list):
-            comment_list = comments  # 이미 리스트라면 그대로 사용
-        else:
-            raise ValueError("comments 데이터가 JSON 변환 불가한 형식입니다.")
-        
-
-    except (json.JSONDecodeError, TypeError, ValueError) as e:
-        print(f"[ERROR] {episode}화 댓글 데이터 로드 실패: {e}")
-        comment_list = []
-
     # 부정적 댓글만 추출
-    negative_comments = [c["text"] for c in comment_list if isinstance(c, dict) and c.get("sentiment_score", 0) <= -0.5]
+    try:
+        comment_list = json.loads(comments)
+        negative_comments = [c["text"] for c in comment_list if c["sentiment_score"] <= -0.5]
+    except (json.JSONDecodeError, TypeError):
+        log("❌ 댓글 데이터 로드 실패")
+        negative_comments = []
 
     if negative_comments:
         prompt += "- 대표적인 독자 피드백: \n"
@@ -106,43 +98,45 @@ def generate_prompt(title, episode):
 
     return prompt
 
-def gpt_analyze(prompt):
-    """GPT API를 호출하여 웹툰 분석 수행"""
+def deepseek_analyze(prompt):
+    """DeepSeek API를 호출하여 웹툰 분석 수행"""
     response = client.chat.completions.create(
-        model=GPT_MODEL,
+        model="deepseek-chat",
         messages=[
-            {"role": "system", "content": "You are a professional data analyst specializing in user feedback analysis."},
-            {"role": "user", "content": prompt}
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": prompt},
         ],
-        max_tokens=1500,
-        temperature=0.7
+        stream=False
     )
 
-    return response.choices[0].message.content.strip()
+    return response.choices[0].message.content
+
 
 def save_report(title, episode, content):
     """분석 결과를 보고서 파일로 저장"""
     os.makedirs(REPORTS_DIR, exist_ok=True)
-    report_filename = os.path.join(REPORTS_DIR, f"{title}_{episode}_gpt_report.md")
+    report_filename = os.path.join(REPORTS_DIR, f"{title}_{episode}_report.md")
 
     with open(report_filename, "w", encoding="utf-8") as f:
         f.write(content)
 
+    log(f"📌 보고서 저장 완료: {report_filename}")
 
-def gpt_report(title, episode):
-    """웹툰 데이터를 가져와 GPT 분석 후 저장"""
+def deepseek_report(title, episode):
+    """웹툰 데이터를 가져와 DeepSeek 분석 후 저장"""
     prompt = generate_prompt(title, episode)
     if not prompt:
         return
 
-    analysis_result = gpt_analyze(prompt)
+    analysis_result = deepseek_analyze(prompt)
     save_report(title, episode, analysis_result)
 
+
 def main():
-    """ 실행 함수 """
-    title = "김부장"
-    episode = 170
-    gpt_report(title, episode)
+    """PostgreSQL 데이터를 기반으로 DeepSeek 분석 및 보고서 생성"""
+    title = "퀘스트지상주의"
+    episode = 169
+    deepseek_report(title, episode)
 
 
 if __name__ == "__main__":
