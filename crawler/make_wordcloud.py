@@ -7,7 +7,8 @@ from wordcloud import WordCloud
 # 전역 변수 설정
 INPUT_DIR = 'comments_processed_data'
 OUTPUT_DIR = 'wordcloud_output'
-STOPWORDS = {"너무", "진짜", "그냥", "좀", "더", "이건", "이게", "ㅋㅋ"}
+STOPWORDS = {"너무", "진짜", "그냥", "좀", "더", "이건", "이게", "ㅋㅋ", "근데", "아니", "왜", "이거", "걍", "이제", "한", "것"}
+STOPWORDS_FILE = 'mapping_data/webtoon_stopwords.json'
 FONT_PATH = 'fonts/NanumGothic.ttf'
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -19,57 +20,65 @@ def load_comments(title, episode):
         data = json.load(f)
 
     # 독자 유형별 댓글 분류
-    general_comments = [comment['text'] for comment in data['comments'] if comment['reader_loyalty'] == '일반 독자']
-    loyal_comments = [comment['text'] for comment in data['comments'] if comment['reader_loyalty'] == '충성 독자']
+    positive_comments = [comment['text'] for comment in data['comments'] if comment['sentiment_score'] >= 0.4 and '찜' not in comment['text']]
+    negative_comments = [comment['text'] for comment in data['comments'] if comment['sentiment_score'] <= -0.6 and '찜' not in comment['text']]
 
-    return general_comments, loyal_comments
+    return positive_comments, negative_comments
 
-def preprocess_text(comments):
+def load_webtoon_stopwords(title):
+    """해당 웹툰에 설정된 불용어 불러오기"""
+    with open(STOPWORDS_FILE, 'r', encoding='utf-8') as f:
+        stopwords_data = json.load(f)
+
+    return set(stopwords_data.get(title, {}).get("stopwords", []))
+
+def preprocess_text(comments, webtoon_stopwords):
     """댓글 텍스트 전처리 및 불용어 제거"""
     all_text = ' '.join(comments)
     words = all_text.split()
-    filtered_words = [word for word in words if word not in STOPWORDS]
+    filtered_words = [word for word in words if word not in STOPWORDS.union(webtoon_stopwords)]
     return filtered_words
 
 def generate_combined_wordcloud(title, episode):
     """일반 독자와 충성 독자의 워드 클라우드를 하나의 이미지로 결합"""
 
     # 댓글 데이터 로드 및 전처리
-    general_comments, loyal_comments = load_comments(title, episode)
-    general_words = preprocess_text(general_comments)
-    loyal_words = preprocess_text(loyal_comments)
+    positive_comments, negative_comments = load_comments(title, episode)
+    webtoon_stopwords = load_webtoon_stopwords(title)
+    positive_words = preprocess_text(positive_comments, webtoon_stopwords)
+    negative_words = preprocess_text(negative_comments, webtoon_stopwords)
     
-    # 일반 독자 워드클라우드 생성
-    general_word_counts = Counter(general_words)
-    general_wordcloud = WordCloud(
+    # 긍정 댓글 워드클라우드 생성
+    positive_word_counts = Counter(positive_words)
+    positive_wordcloud = WordCloud(
         width=600, 
         height=600, 
         background_color='white',
         font_path=FONT_PATH
-    ).generate_from_frequencies(general_word_counts)
+    ).generate_from_frequencies(positive_word_counts)
 
-    # 충성 독자 워드클라우드 생성
-    loyal_word_counts = Counter(loyal_words)
-    loyal_wordcloud = WordCloud(
+    # 부정 댓글 워드클라우드 생성
+    negative_word_counts = Counter(negative_words)
+    negative_wordcloud = WordCloud(
         width=600, 
         height=600, 
         background_color='white',
         font_path=FONT_PATH
-    ).generate_from_frequencies(loyal_word_counts)
+    ).generate_from_frequencies(negative_word_counts)
 
     # 플롯 설정
     plt.figure(figsize=(14, 7))
 
-    # 일반 독자 워드클라우드
+    # 긍정 댓글 워드클라우드
     plt.subplot(1, 2, 1)
-    plt.imshow(general_wordcloud, interpolation='bilinear')
-    plt.title('General Reader Word Cloud')
+    plt.imshow(positive_wordcloud, interpolation='bilinear')
+    plt.title('Positive comments Word Cloud')
     plt.axis('off')
 
-    # 충성 독자 워드클라우드
+    # 부정 댓글 워드클라우드
     plt.subplot(1, 2, 2)
-    plt.imshow(loyal_wordcloud, interpolation='bilinear')
-    plt.title('Loyal Reader Word Cloud')
+    plt.imshow(negative_wordcloud, interpolation='bilinear')
+    plt.title('Negative comments Word Cloud')
     plt.axis('off')
 
     # 저장 및 출력
@@ -80,7 +89,7 @@ def generate_combined_wordcloud(title, episode):
 
 def main():
     title = '김부장'
-    episode = 167
+    episode = 163
 
     # 워드 클라우드 생성 및 저장
     generate_combined_wordcloud(title, episode)
