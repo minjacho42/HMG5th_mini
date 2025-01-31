@@ -61,11 +61,13 @@ def visualize_trend(trend_df):
     ax[0].plot(trend_df.index, trend_df["rating"], marker='o', linestyle='-', label="Rating")
     ax[0].set_xlabel("Trend ID")
     ax[0].set_ylabel("Rating")
+    ax[0].set_ylim(0, 10)
     ax[0].set_title("Rating Trend")
 
     ax[1].plot(trend_df.index, trend_df["negative_comment_ratio"], marker='s', linestyle='--', label="Negative Comment Ratio")
     ax[1].set_xlabel("Trend ID")
     ax[1].set_ylabel("Value")
+    ax[1].set_ylim(0, 100)
     ax[1].set_title("Rating and Negative Comment Ratio Trend")
     fig.suptitle("Trend Analysis")
     return fig
