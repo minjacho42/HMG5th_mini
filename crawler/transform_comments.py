@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 from sentiment.sentiment_predictor import get_sentiment_score, get_sentiment_classifier
 from tqdm import tqdm
+from dateutil.parser import parse
 
 load_dotenv()
 # 전역 변수 설정
@@ -22,11 +23,11 @@ def load_comments_json(title, episode):
     return data
 
 def classify_reader(comment:dict, threshold_time:datetime):
-    comment_time = datetime.fromisoformat(comment["date"])
+    comment_time = parse(comment["date"])
     return "충성 독자" if comment_time <= threshold_time else "일반 독자"
 
 def get_threshold_time(comments:list):
-    return datetime.fromisoformat(comments[-1]["date"]) + timedelta(hours=12)
+    return parse(comments[-1]["date"]) + timedelta(hours=12)
 
 def save_transformed_data(webtoon_name, episode, data:dict):
     os.makedirs(PROCESSED_DATA_DIR, exist_ok=True)
