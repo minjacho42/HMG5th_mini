@@ -5,11 +5,11 @@ import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 
 # 전역 변수 설정
-INPUT_DIR = 'comments_processed_data'
-OUTPUT_DIR = 'wordcloud_output'
+INPUT_DIR = os.getenv('PROCESSED_DATA_DIR')
+OUTPUT_DIR = os.getenv('WORDCLOUD_OUTPUT_DIR')
 STOPWORDS = {"너무", "진짜", "그냥", "좀", "더", "이건", "이게", "ㅋㅋ", "근데", "아니", "왜", "이거", "걍", "이제", "한", "것"}
-STOPWORDS_FILE = 'mapping_data/webtoon_stopwords.json'
-FONT_PATH = 'fonts/NanumGothic.ttf'
+STOPWORDS_FILE = os.getenv('STOPWORDS_FILE')
+FONT_PATH = os.getenv('FONT_PATH')
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
@@ -84,7 +84,7 @@ def generate_combined_wordcloud(title, episode):
     # 저장 및 출력
     output_file = os.path.join(OUTPUT_DIR, f"{title}_{episode}_combined_wordcloud.png")
     plt.savefig(output_file)
-    plt.show()
+    # plt.show()
     print(f"워드 클라우드가 {output_file}로 저장되었습니다.")
 
 def main():
