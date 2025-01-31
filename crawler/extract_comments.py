@@ -1,7 +1,7 @@
 import json
 import os
 import time
-import requests
+import re
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
@@ -57,11 +57,13 @@ def scrape_recent_episodes(title):
     for episode in episode_elements:
         try:
             episode_title = episode.find_element(By.CLASS_NAME, 'EpisodeListList__title--lfIzU').text
+            episode_num = re.search(r"no=(\d+)", episode.find_element(By.CLASS_NAME, "EpisodeListList__link--DdClU").get_attribute("href")).group(1)
             episode_rating = episode.find_element(By.CLASS_NAME, 'Rating__star_area--dFzsb').find_element(By.CLASS_NAME, 'text').text
             episode_date = episode.find_element(By.CLASS_NAME, 'EpisodeListList__meta_info--Cgquz').find_element(By.CLASS_NAME, 'date').text
 
             episodes_data.append({
                 "title": episode_title,
+                "episode": episode_num,
                 "rating": episode_rating,
                 "date": episode_date
             })
