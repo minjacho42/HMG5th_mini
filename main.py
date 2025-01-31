@@ -2,6 +2,9 @@ from crawler.extract_comments import scrape_recent_episodes, scrape_webtoon_comm
 from crawler.transform_comments import transform
 from crawler.update_trend import update_comments_with_trend
 from crawler.load_comments import insert_episode_data
+from create_report.gptapi_report import gpt_report
+from visualize.visualize import visualize 
+from crawler.make_wordcloud import generate_combined_wordcloud
 import argparse
 
 def main(title, episode):
@@ -20,6 +23,15 @@ def main(title, episode):
     # 3. DB 적재
     print("DB 적재 중...")
     insert_episode_data(title, episode)
+
+    # 4. 시각화
+    print("시각화 중...")
+    visualize(title, episode)
+    generate_combined_wordcloud(title, episode)
+
+    # 5. 리포트 생성
+    print("리포트 생성 중...")
+    gpt_report(title, episode)
 
     print(f"웹툰 '{title}'의 에피소드 {episode} 처리 완료.")
 

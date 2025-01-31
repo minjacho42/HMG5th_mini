@@ -9,3 +9,4 @@ crawler/comments_processed_data/
 crawler/episode_data/
 crawler/name_id_mapper.ipynb
 sentiment/pretrained_model/
+create_report/reports/

@@ -7,6 +7,8 @@ import os
 
 load_dotenv()
 
+VISUALIZED_IMAGE_DIR = os.getenv("VISUALIZED_IMAGE_DIR")
+
 colors = ['#66b3ff', '#ff9999', '#99ff99']
 # Blue, Red, Green
 
@@ -72,7 +74,7 @@ def visualize_trend(trend_df):
     fig.suptitle("Trend Analysis")
     return fig
 
-def load_tend_and_comments_from_db(title, episode_num):
+def load_trend_and_comments_from_db(title, episode_num):
     conn = connect_db()
     cursor = conn.cursor()
     cursor.execute(f"""
@@ -84,21 +86,37 @@ def load_tend_and_comments_from_db(title, episode_num):
     trend, comments = data[0]
     return trend, comments
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--title", type=str, required=True)
-    parser.add_argument("--episode_num", type=int, required=True)
-    args = parser.parse_args()
-    trend, comments = load_tend_and_comments_from_db(args.title, args.episode_num)
+def visualize(title, episode_num):
+    """ 전체 시각화 실행 함수 """
+    trend, comments = load_trend_and_comments_from_db(title, episode_num)
+    if trend is None or comments is None:
+        print(f"[ERROR] {title} {episode_num}화 데이터가 존재하지 않습니다.")
+        return
+
+    # 트렌드 데이터 변환
     trend_df = pd.DataFrame(trend).T
     trend_df.index.name = 'Episode'
     trend_df['rating'] = trend_df['rating'].astype(float)
-    trend_df['negative_comment_ratio'] = trend_df['negative_comment_ratio'].replace('N/A', 0)
-    trend_df['negative_comment_ratio'] = trend_df['negative_comment_ratio'].astype(float, errors='ignore')
-    fig = visualize_trend(trend_df)
-    if not os.path.isdir("./visualized_image"):
-        os.mkdir("./visualized_image")
-    fig.savefig(f"./visualized_image/{args.title}_{args.episode_num}_trend.png")
+    trend_df['negative_comment_ratio'] = trend_df['negative_comment_ratio'].replace('N/A', 0).astype(float, errors='ignore')
+
+    # 시각화 실행
+    trend_fig = visualize_trend(trend_df)
     comments_df = pd.DataFrame(comments)
-    fig = visualize_sentiment_pie(comments_df, 0.6)
-    fig.savefig(f"./visualized_image/{args.title}_{args.episode_num}_sentiment.png")
+    sentiment_fig = visualize_sentiment_pie(comments_df, 0.6)
+
+    # 결과 저장
+    output_dir = VISUALIZED_IMAGE_DIR
+    os.makedirs(output_dir, exist_ok=True)
+    trend_fig.savefig(f"{output_dir}/{title}_{episode_num}_trend.png")
+    sentiment_fig.savefig(f"{output_dir}/{title}_{episode_num}_sentiment.png")
+
+    print(f"[INFO] 시각화 결과 저장 완료: {output_dir}")
+
+def main():
+    """ 단독 실행 시 기본 실행 함수 """
+    title = '김부장'
+    episode = 167
+    visualize(title, episode)
+
+if __name__ == "__main__":
+    main()
